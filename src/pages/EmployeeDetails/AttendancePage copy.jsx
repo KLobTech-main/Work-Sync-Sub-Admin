@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import axios from "axios";
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Paper,
   Table,
@@ -14,13 +13,13 @@ import {
   Box,
   TablePagination,
   Button,
-} from "@mui/material";
+} from '@mui/material';
 
 // Utility function to format date
 const formatDate = (dateString) => {
   const date = new Date(dateString);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 };
@@ -29,8 +28,8 @@ const formatDate = (dateString) => {
 const formatTime = (timeString) => {
   const date = new Date(timeString);
   let hours = date.getHours();
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const ampm = hours >= 12 ? "PM" : "AM";
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12 || 12; // Convert to 12-hour format
   return `${hours}:${minutes} ${ampm}`;
 };
@@ -40,42 +39,20 @@ const AttendancePage = () => {
   const { employee } = state || {};
 
   const [attendanceData, setAttendanceData] = useState([]);
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(10);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchAttendanceData = async () => {
-      const adminEmail = localStorage.getItem("email");
-      const authToken = localStorage.getItem("token");
-      const employeeEmail = employee.email; // Get email from employee data
+    // Dummy data for attendance records
+    const dummyData = [
+      { id: 1, name: 'John Doe', date: '2024-12-01', punchInTime: '2024-12-01T09:00:00', punchOutTime: '2024-12-01T17:00:00' },
+      { id: 2, name: 'John Doe', date: '2024-12-02', punchInTime: '2024-12-02T09:15:00', punchOutTime: '2024-12-02T17:05:00' },
+      { id: 3, name: 'John Doe', date: '2024-12-03', punchInTime: '2024-12-03T09:30:00', punchOutTime: '2024-12-03T17:30:00' },
+      // Add more dummy records as needed
+    ];
 
-      if (!adminEmail || !authToken || !employeeEmail) {
-        setError(
-          "Missing admin email, authentication token, or employee email."
-        );
-        setLoading(false);
-        return;
-      }
-
-      const apiUrl = `https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin/api/attendance/${employeeEmail}`;
-
-      try {
-        const response = await axios.get(apiUrl, {
-          params: { adminEmail },
-          headers: { Authorization: authToken },
-        });
-        setAttendanceData(response.data);
-      } catch (err) {
-        setError("Failed to fetch attendance data. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAttendanceData();
+    setAttendanceData(dummyData);
   }, [employee]);
 
   // Filter attendance data based on selected date
@@ -89,7 +66,7 @@ const AttendancePage = () => {
   };
 
   const handleReset = () => {
-    setSelectedDate("");
+    setSelectedDate('');
     setPage(0);
   };
 
@@ -101,33 +78,14 @@ const AttendancePage = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <Typography variant="h6" align="center">
-        Loading attendance data...
-      </Typography>
-    );
-  }
-
-  if (error) {
-    return (
-      <Typography variant="h6" color="error" align="center">
-        {error}
-      </Typography>
-    );
-  }
-
   return (
-    <div
-      className="p-6"
-      style={{ display: "flex", justifyContent: "space-between" }}
-    >
+    <div className="p-6" style={{ display: 'flex', justifyContent: 'space-between' }}>
       <div style={{ flexGrow: 1 }}>
         <div className="flex justify-between py-5">
           <Typography variant="h4" gutterBottom>
             {employee.name}'s Attendance Details
           </Typography>
-          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <TextField
               label="Search by Date"
               type="date"
@@ -135,7 +93,7 @@ const AttendancePage = () => {
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               variant="outlined"
-              sx={{ width: "250px" }}
+              sx={{ width: '250px' }}
             />
             <Button variant="outlined" color="secondary" onClick={handleReset}>
               Reset
@@ -168,12 +126,8 @@ const AttendancePage = () => {
                       <TableCell>{attendance.id || index + 1}</TableCell>
                       <TableCell>{attendance.name}</TableCell>
                       <TableCell>{formatDate(attendance.date)}</TableCell>
-                      <TableCell>
-                        {formatTime(attendance.punchInTime)}
-                      </TableCell>
-                      <TableCell>
-                        {formatTime(attendance.punchOutTime)}
-                      </TableCell>
+                      <TableCell>{formatTime(attendance.punchInTime)}</TableCell>
+                      <TableCell>{formatTime(attendance.punchOutTime)}</TableCell>
                     </TableRow>
                   ))
                 )}

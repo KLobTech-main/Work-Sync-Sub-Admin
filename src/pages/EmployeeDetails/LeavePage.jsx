@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Paper,
   Table,
@@ -9,32 +9,51 @@ import {
   TableRow,
   TextField,
   Box,
-  Typography
-} from '@mui/material';
+  Typography,
+} from "@mui/material";
+import axios from "axios";
 
 const EmployeeDetails = () => {
-  const [leaves, setLeaves] = useState([
-    {
-      leaveId: 1,
-      name: 'John Doe',
-      leaveType: 'Sick Leave',
-      reason: 'Fever and Cold',
-      startDate: '2024-12-20',
-      endDate: '2024-12-22',
-      status: 'Approved'
-    },
-    {
-      leaveId: 2,
-      name: 'Jane Smith',
-      leaveType: 'Casual Leave',
-      reason: 'Family Function',
-      startDate: '2024-12-25',
-      endDate: '2024-12-26',
-      status: 'Pending'
-    }
-  ]);
+  const [leaves, setLeaves] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [search, setSearch] = useState('');
+  useEffect(() => {
+    const fetchLeaves = async () => {
+      const adminEmail = localStorage.getItem("email");
+      const authToken = localStorage.getItem("token");
+      const employeeEmail = "luffy@gmail.com"; // Replace this with the dynamic employee email.
+
+      if (!adminEmail || !authToken || !employeeEmail) {
+        setError(
+          "Missing admin email, authentication token, or employee email."
+        );
+        setLoading(false);
+        return;
+      }
+
+      const apiUrl = `https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin/api/leaves/${employeeEmail}`;
+
+      try {
+        const response = await axios.get(apiUrl, {
+          params: {
+            adminEmail,
+          },
+          headers: {
+            Authorization: authToken,
+          },
+        });
+        setLeaves(response.data);
+      } catch (err) {
+        setError("Failed to fetch leave data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeaves();
+  }, []);
 
   const filteredLeaves = leaves.filter((leave) =>
     leave.name.toLowerCase().includes(search.toLowerCase())
@@ -44,10 +63,26 @@ const EmployeeDetails = () => {
     setSearch(event.target.value);
   };
 
+  if (loading) {
+    return (
+      <Typography variant="h6" color="primary" align="center">
+        Loading leave data...
+      </Typography>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography variant="h6" color="error" align="center">
+        {error}
+      </Typography>
+    );
+  }
+
   return (
     <div className="p-6 overflow-auto h-screen">
       <h2 className="text-xl font-bold">Leave Details</h2>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
         <TextField
           label="Search by Name"
           variant="outlined"
@@ -65,20 +100,24 @@ const EmployeeDetails = () => {
           <TableContainer>
             <Table>
               <TableHead>
-                <TableRow style={{ backgroundColor: '#f0f0f0' }}>
-                  <TableCell style={{ fontWeight: 'bold' }}>Leave ID</TableCell>
-                  <TableCell style={{ fontWeight: 'bold' }}>Name</TableCell>
-                  <TableCell style={{ fontWeight: 'bold' }}>Leave Type</TableCell>
-                  <TableCell style={{ fontWeight: 'bold' }}>Reason</TableCell>
-                  <TableCell style={{ fontWeight: 'bold' }}>Start Date</TableCell>
-                  <TableCell style={{ fontWeight: 'bold' }}>End Date</TableCell>
-                  <TableCell style={{ fontWeight: 'bold' }}>Status</TableCell>
+                <TableRow style={{ backgroundColor: "#f0f0f0" }}>
+                  <TableCell style={{ fontWeight: "bold" }}>Leave ID</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>Name</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>
+                    Leave Type
+                  </TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>Reason</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>
+                    Start Date
+                  </TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>End Date</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>Status</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredLeaves.map((leave) => (
                   <TableRow key={leave.leaveId}>
-                    <TableCell>{leave.leaveId}</TableCell>
+                    <TableCell>{leave.id}</TableCell>
                     <TableCell>{leave.name}</TableCell>
                     <TableCell>{leave.leaveType}</TableCell>
                     <TableCell>{leave.reason}</TableCell>

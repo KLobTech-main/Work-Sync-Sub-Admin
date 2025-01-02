@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import {
   Paper,
   Table,
@@ -19,42 +18,32 @@ import {
 } from "@mui/material";
 
 const Ticket = () => {
-  const [tickets, setTickets] = useState([]);
+  const [tickets, setTickets] = useState([
+    {
+      id: 1,
+      email: "user1@example.com",
+      title: "Login Issue",
+      description: "Cannot login to the system",
+      status: "OPEN",
+      priority: "High",
+    },
+    {
+      id: 2,
+      email: "user2@example.com",
+      title: "UI Bug",
+      description: "Button not working on homepage",
+      status: "IN_PROGRESS",
+      priority: "Medium",
+    },
+    // Add more tickets as needed
+  ]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchStatus, setSearchStatus] = useState("");
   const [searchPriority, setSearchPriority] = useState("");
   const [searchEmployee, setSearchEmployee] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Fetch tickets from API
-  useEffect(() => {
-    const fetchTickets = async () => {
-      try {
-        // setLoad\ing(true);
-        // setSnacbarOpen(true);
-        const adminEmail = localStorage.getItem("email"); // Fetch from localStorage
-        const token = localStorage.getItem("token"); // Fetch from localStorage
-        const response = await axios.get(
-          "https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin/api/tickets/",
-          {
-            params: { adminEmail },
-            headers: { Authorization: token },
-          }
-        );
-        setTickets(response.data);
-      } catch (err) {
-        setError("Failed to fetch tickets. Please try again.");
-      } finally {
-        // setLoading(false);
-        // setSnackbarOpen(false);
-      }
-    };
-
-    fetchTickets();
-  }, []);
   // Filter tickets based on search criteria
   const filteredTickets = tickets.filter((ticket) => {
     const matchesIssue = ticket.title
@@ -82,46 +71,12 @@ const Ticket = () => {
   };
 
   // Handle status change from dropdown
-  // Handle status change from dropdown
-  const handleStatusChange = async (ticketId, status) => {
-    const adminEmail = localStorage.getItem("email");
-    const authToken = localStorage.getItem("token");
-
-    if (!adminEmail || !authToken) {
-      return alert("Email or Auth Token not found.");
-    }
-
-    if (!["OPEN", "IN_PROGRESS", "RESOLVED"].includes(status)) {
-      return alert("Invalid status. Choose OPEN, IN_PROGRESS, or RESOLVED.");
-    }
-
-    try {
-      setTickets((prevTickets) =>
-        prevTickets.map((ticket) =>
-          ticket.id === ticketId ? { ...ticket, status } : ticket
-        )
-      );
-
-      await axios.patch(
-        `https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin/api/tickets/status?adminEmail=${adminEmail}&ticketId=${ticketId}&status=${status}`,
-        {},
-        {
-          headers: {
-            Authorization: authToken,
-          },
-        }
-      );
-
-      console.log(`Status for ticket ${ticketId} updated to ${status}.`);
-    } catch (error) {
-      console.error("Error updating status:", error);
-      alert(
-        `Failed to update status. ${
-          error.response?.data?.message || error.message
-        }`
-      );
-      console.log();
-    }
+  const handleStatusChange = (ticketId, newStatus) => {
+    setTickets(
+      tickets.map((ticket) =>
+        ticket.id === ticketId ? { ...ticket, status: newStatus } : ticket
+      )
+    );
   };
 
   return (

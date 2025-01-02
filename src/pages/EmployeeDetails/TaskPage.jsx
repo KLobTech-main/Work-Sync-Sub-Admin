@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Paper,
   Table,
@@ -16,25 +16,57 @@ import {
   Select,
   FormControl,
   InputLabel,
-} from '@mui/material';
+} from "@mui/material";
+import axios from "axios";
 
 const TaskPage = () => {
   const { state } = useLocation(); // Fetching the employee data passed from the previous page
   const { employee } = state || {};
 
-  // Dummy data for tasks
-  const dummyTaskData = [
-    { id: '1', name: 'John Doe', email: 'john@example.com', task: 'Fix bugs in the app', status: 'In Progress' },
-    { id: '2', name: 'Jane Smith', email: 'jane@example.com', task: 'Write unit tests', status: 'Completed' },
-    { id: '3', name: 'Bob Johnson', email: 'bob@example.com', task: 'Implement new feature', status: 'Pending' },
-    { id: '4', name: 'Alice Brown', email: 'alice@example.com', task: 'Refactor codebase', status: 'In Progress' },
-    { id: '5', name: 'Charlie White', email: 'charlie@example.com', task: 'Optimize performance', status: 'Completed' },
-  ];
-
-  const [taskData, setTaskData] = useState(dummyTaskData);
-  const [taskNameFilter, setTaskNameFilter] = useState('');
-  const [taskStatusFilter, setTaskStatusFilter] = useState('');
+  const [taskData, setTaskData] = useState([]);
+  const [taskNameFilter, setTaskNameFilter] = useState("");
+  const [taskStatusFilter, setTaskStatusFilter] = useState("");
   const [filteredTasks, setFilteredTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (!employee) return;
+
+      const adminEmail = localStorage.getItem("email");
+      const authToken = localStorage.getItem("token");
+      const employeeEmail = employee.email;
+      const apiUrl = `https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin/api/tasks/get/email`;
+
+      if (!adminEmail || !authToken || !employeeEmail) {
+        setError(
+          "User email, authentication token, or employee email is missing."
+        );
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get(apiUrl, {
+          params: {
+            adminEmail,
+            email: employeeEmail,
+          },
+          headers: {
+            Authorization: authToken,
+          },
+        });
+        setTaskData(response.data);
+      } catch (err) {
+        setError("Failed to fetch tasks. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, [employee]);
 
   useEffect(() => {
     // Filter tasks dynamically when filters or taskData change
@@ -55,10 +87,26 @@ const TaskPage = () => {
 
   // Reset filters
   const handleReset = () => {
-    setTaskNameFilter('');
-    setTaskStatusFilter('');
+    setTaskNameFilter("");
+    setTaskStatusFilter("");
     setFilteredTasks(taskData);
   };
+
+  if (loading) {
+    return (
+      <Typography variant="h6" color="primary" align="center">
+        Loading tasks...
+      </Typography>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography variant="h6" color="error" align="center">
+        {error}
+      </Typography>
+    );
+  }
 
   if (!employee) {
     return (
@@ -105,7 +153,7 @@ const TaskPage = () => {
             variant="outlined"
             color="secondary"
             onClick={handleReset}
-            sx={{ height: '55px' }}
+            sx={{ height: "55px" }}
           >
             Reset
           </Button>

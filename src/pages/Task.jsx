@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Paper,
   Table,
@@ -9,70 +10,57 @@ import {
   TableRow,
   TextField,
   Box,
+  Snackbar,
+  Alert,
   TablePagination,
-  Button,
   CircularProgress,
   Typography,
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+} from "@mui/material";
 
 const Task = () => {
   const [tasks, setTasks] = useState([]); // State for tasks
-  const [newTask, setNewTask] = useState({
-    assignedTo: '',
-    deadLine: '',
-    title: '',
-    description: '',
-    status: 'On Going',
-  });
-  const [loading, setLoading] = useState(false); // State for loading
-  const [searchTerm, setSearchTerm] = useState(''); // State for search filter
+  const [error, setError] = useState(null); // State for error
+  const [searchTerm, setSearchTerm] = useState(""); // State for search filter
   const [page, setPage] = useState(0); // Current page
   const [rowsPerPage, setRowsPerPage] = useState(10); // Rows per page
-  const [users, setUsers] = useState(['user1@example.com', 'user2@example.com']); // Example users
 
-  // Handle input changes for creating a new task
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewTask((prevTask) => ({
-      ...prevTask,
-      [name]: value,
-    }));
-  };
+  // Fetch tasks from API
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        setSnackbarOpen(true);
+        const token = localStorage.getItem("token");
+        const adminEmail = "example@company.com"; // Retrieve email from localStorage
+        // const token =
+        //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJleGFtcGxlQGNvbXBhbnkuY29tIiwiaWF0IjoxNzM1MTkzNDQyLCJleHAiOjE3MzUyMjk0NDJ9.TFMeMTNRUfeqIxxwTgAt-J2PCXXO4nLz22AeS4SsuNg"; // Retrieve token from localStorage
 
-  const handleAssignedToChange = (e) => {
-    setNewTask((prevTask) => ({
-      ...prevTask,
-      assignedTo: e.target.value,
-    }));
-  };
+        const response = await axios.get(
+          `https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin/api/tasks/all?adminEmail=${adminEmail}`,
+          {
+            headers: {
+              Authorization: token, // Add token to request headers
+            },
+          }
+        );
 
-  // Create new task
-  const handleCreateTask = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setTasks((prevTasks) => [...prevTasks, newTask]); // Add new task to the tasks array
-      setNewTask({
-        assignedTo: '',
-        deadLine: '',
-        title: '',
-        description: '',
-        status: 'On Going',
-      }); // Reset form
-      setLoading(false);
-    }, 1000); // Simulate loading
-  };
+        setTasks(response.data); // Update tasks state
+      } catch (err) {
+        setError("Failed to fetch tasks. Please try again."); // Handle errors
+      } finally {
+        setLoading(false);
+        setSnackbarOpen(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
 
   // Filter tasks based on search input
   const filteredTasks = tasks.filter(
     (task) =>
-      task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.description.toLowerCase().includes(searchTerm.toLowerCase())
+      task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle page change
@@ -86,13 +74,58 @@ const Task = () => {
     setPage(0); // Reset to first page when rows per page is changed
   };
 
+  const [loading, setLoading] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+  if (loading) {
+    return (
+      <>
+        <Snackbar
+          open={snackbarOpen}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        >
+          <Alert
+            onClose={handleSnackbarClose}
+            severity="info"
+            sx={{ width: "100%" }}
+          >
+            Loading
+          </Alert>
+        </Snackbar>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="60vh"
+      >
+        <Typography variant="h6" color="error">
+          {error}
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <div className="p-6">
       {/* Header and Search Box */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        marginBottom={2}
+      >
         <h2 className="text-xl font-bold">Employee Tasks</h2>
         {/* Search Input on the Right */}
-        <Box sx={{ width: '400px' }}>
+        <Box sx={{ width: "400px" }}>
           <TextField
             label="Search by Name or Task"
             variant="outlined"
@@ -101,88 +134,6 @@ const Task = () => {
             onChange={(e) => setSearchTerm(e.target.value)} // Update search term
           />
         </Box>
-      </Box>
-
-      {/* New Task Form */}
-      <Box sx={{ marginBottom: '30px' }}>
-        <Typography variant="h6">Create a New Task</Typography>
-        <Grid container spacing={2} sx={{ marginTop: '10px' }}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Assigned To</InputLabel>
-              <Select
-                value={newTask.assignedTo}
-                onChange={handleAssignedToChange}
-                name="assignedTo"
-                renderValue={(selected) => selected}
-              >
-                {users.map((email) => (
-                  <MenuItem key={email} value={email}>
-                    {email}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Deadline"
-              variant="outlined"
-              fullWidth
-              name="deadLine"
-              value={newTask.deadLine}
-              onChange={handleChange}
-              type="date"
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Title"
-              variant="outlined"
-              fullWidth
-              name="title"
-              value={newTask.title}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Description"
-              variant="outlined"
-              fullWidth
-              name="description"
-              value={newTask.description}
-              onChange={handleChange}
-              multiline
-              rows={3}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
-              <Select
-                name="status"
-                value={newTask.status}
-                onChange={handleChange}
-                label="Status"
-              >
-                <MenuItem value="On Going">On Going</MenuItem>
-                <MenuItem value="Completed">Completed</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-        <Button
-          sx={{ marginTop: '20px' }}
-          variant="contained"
-          color="primary"
-          onClick={handleCreateTask}
-          startIcon={<AddIcon />}
-          disabled={loading}
-        >
-          {loading ? 'Creating...' : 'Create Task'}
-        </Button>
       </Box>
 
       {/* Task Table */}
@@ -204,10 +155,10 @@ const Task = () => {
               {filteredTasks.length > 0 ? (
                 filteredTasks
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Show `rowsPerPage` tasks per page
-                  .map((task, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>Admin</TableCell>
+                  .map((task) => (
+                    <TableRow key={task.id}>
+                      <TableCell>{task.id}</TableCell>
+                      <TableCell>{task.assignedBy}</TableCell>
                       <TableCell>{task.assignedTo}</TableCell>
                       <TableCell>{task.title}</TableCell>
                       <TableCell>{task.description}</TableCell>
@@ -217,7 +168,7 @@ const Task = () => {
                   ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={5} align="center">
                     No tasks match the search criteria.
                   </TableCell>
                 </TableRow>

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import {
   Box,
   TextField,
@@ -18,42 +17,20 @@ const Login = () => {
   const [openErrorSnackbar, setOpenErrorSnackbar] = useState(false);
   const [openSuccessSnackbar, setOpenSuccessSnackbar] = useState(false);
 
-  const handleLogin = async (event) => {
+  const handleLogin = (event) => {
     event.preventDefault();
 
-    try {
-      const response = await axios.post(
-        "https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin-sub/login",
-        {
-          email,
-          password,
-        }
-      );
+    if (email === "subadmin@example.com" && password === "password123") {
+      localStorage.setItem("email", email);
 
-      // Handle successful login
-      if (response.status === 200) {
-        const { token } = response.data;
+      setSuccess("Login successful! Redirecting...");
+      setOpenSuccessSnackbar(true);
 
-        // Store token and email in localStorage
-        localStorage.setItem("token", token);
-        localStorage.setItem("email", email);
-
-        // Show success snackbar
-        setSuccess("Login successful! Redirecting...");
-        setOpenSuccessSnackbar(true);
-
-        // Redirect after a short delay
-        setTimeout(() => {
-          window.location.href = "/admin/employee-details"; // Replace with your redirect path
-        }, 2000);
-      }
-    } catch (err) {
-      // Handle errors
-      setError(
-        err.response && err.response.data && err.response.data.message
-          ? err.response.data.message
-          : "Login failed. Please try again."
-      );
+      setTimeout(() => {
+        window.location.href = "/subadmin/employee-details";
+      }, 2000);
+    } else {
+      setError("Invalid email or password. Please try again.");
       setOpenErrorSnackbar(true);
     }
   };
