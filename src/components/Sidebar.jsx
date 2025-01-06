@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   List,
   ListItem,
@@ -7,6 +7,7 @@ import {
   ListItemText,
   Typography,
   Collapse,
+  Button,
 } from "@mui/material";
 import {
   People as EmployeeIcon,
@@ -20,10 +21,12 @@ import {
   AccountCircle as UserIcon,
   SupervisorAccount as SubAdminIcon,
   EditOutlined as JobHistory,
+  Logout as LogoutIcon,
 } from "@mui/icons-material";
 
 const Sidebar = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
+  const navigate = useNavigate();
 
   const handleDropdownToggle = (menu) => {
     setOpenDropdown((prev) => (prev === menu ? null : menu));
@@ -31,6 +34,11 @@ const Sidebar = () => {
 
   const handleNavLinkClick = () => {
     setOpenDropdown(null); // Collapse any open dropdown when a regular link is clicked
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/admin/login");
   };
 
   return (
@@ -238,6 +246,24 @@ const Sidebar = () => {
           </ListItem>
         </NavLink>
       </List>
+      <div style={{ padding: "16px" }}>
+        <Button
+          variant="contained"
+          color="secondary"
+          startIcon={<LogoutIcon />}
+          fullWidth
+          onClick={handleLogout}
+          sx={{
+            backgroundColor: "#1E3A8A",
+            color: "#E0F2F1",
+            "&:hover": {
+              backgroundColor: "#163A74",
+            },
+          }}
+        >
+          Logout
+        </Button>
+      </div>
     </div>
   );
 };
