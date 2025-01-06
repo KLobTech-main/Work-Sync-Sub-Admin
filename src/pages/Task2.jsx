@@ -15,7 +15,6 @@ import {
   TablePagination,
   CircularProgress,
   Typography,
-  Button,
 } from "@mui/material";
 
 const Task = () => {
@@ -24,7 +23,6 @@ const Task = () => {
   const [searchTerm, setSearchTerm] = useState(""); // State for search filter
   const [page, setPage] = useState(0); // Current page
   const [rowsPerPage, setRowsPerPage] = useState(10); // Rows per page
-  const [expandedTask, setExpandedTask] = useState(null); // To track which task's description is expanded
 
   // Fetch tasks from API
   useEffect(() => {
@@ -34,6 +32,8 @@ const Task = () => {
         setSnackbarOpen(true);
         const token = localStorage.getItem("token");
         const adminEmail = "example@company.com"; // Retrieve email from localStorage
+        // const token =
+        //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJleGFtcGxlQGNvbXBhbnkuY29tIiwiaWF0IjoxNzM1MTkzNDQyLCJleHAiOjE3MzUyMjk0NDJ9.TFMeMTNRUfeqIxxwTgAt-J2PCXXO4nLz22AeS4SsuNg"; // Retrieve token from localStorage
 
         const response = await axios.get(
           `https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin/api/tasks/all?adminEmail=${adminEmail}`,
@@ -79,7 +79,6 @@ const Task = () => {
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
-
   if (loading) {
     return (
       <>
@@ -88,25 +87,35 @@ const Task = () => {
           onClose={handleSnackbarClose}
           anchorOrigin={{ vertical: "top", horizontal: "right" }}
         >
-          <Alert onClose={handleSnackbarClose} severity="info">
-            Loading...
+          <Alert
+            onClose={handleSnackbarClose}
+            severity="info"
+            sx={{ width: "100%" }}
+          >
+            Loading
           </Alert>
         </Snackbar>
-        <CircularProgress />
       </>
     );
   }
 
   if (error) {
     return (
-      <Typography variant="body1" color="error">
-        {error}
-      </Typography>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="60vh"
+      >
+        <Typography variant="h6" color="error">
+          {error}
+        </Typography>
+      </Box>
     );
   }
 
   return (
-    <div>
+    <div className="p-6">
       {/* Header and Search Box */}
       <Box
         display="flex"
@@ -127,10 +136,10 @@ const Task = () => {
         </Box>
       </Box>
 
-      {/* Table component */}
-      <Paper elevation={3}>
+      {/* Task Table */}
+      <Paper>
         <TableContainer>
-          <Table aria-label="simple table">
+          <Table>
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
@@ -145,38 +154,21 @@ const Task = () => {
             <TableBody>
               {filteredTasks.length > 0 ? (
                 filteredTasks
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Show `rowsPerPage` tasks per page
                   .map((task) => (
                     <TableRow key={task.id}>
                       <TableCell>{task.id}</TableCell>
                       <TableCell>{task.assignedBy}</TableCell>
                       <TableCell>{task.assignedTo}</TableCell>
                       <TableCell>{task.title}</TableCell>
-                      <TableCell>
-                        {expandedTask === task.id ? (
-                          // Show full description if expanded
-                          <div style={{ whiteSpace: "pre-wrap" }}>
-                            {task.description}
-                          </div>
-                        ) : (
-                          // Truncate description and show expand button
-                          <div>
-                            {`${task.description.slice(0, 100)}... `}
-                            <Button onClick={() => setExpandedTask(task.id)}>
-                              View More
-                            </Button>
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(task.deadLine).toLocaleDateString()}
-                      </TableCell>
+                      <TableCell>{task.description}</TableCell>
+                      <TableCell>{task.deadLine}</TableCell>
                       <TableCell>{task.status}</TableCell>
                     </TableRow>
                   ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={5} align="center">
                     No tasks match the search criteria.
                   </TableCell>
                 </TableRow>
@@ -188,13 +180,13 @@ const Task = () => {
 
       {/* Pagination */}
       <TablePagination
-        rowsPerPageOptions={[10]}
+        rowsPerPageOptions={[10]} // Allow only 10 rows per page
         component="div"
         count={filteredTasks.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage} // Allow changing rows per page
       />
     </div>
   );
