@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import { Box } from "@mui/material";
 import Sidebar from "./components/Sidebar"; // Sidebar component
@@ -30,6 +31,7 @@ import AnnouncementForm from "./pages/AnnouncementPages/CreateAnnouncement";
 
 const AppContent = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const noSidebarPaths = ["/admin/login", "/register"];
 
@@ -40,6 +42,12 @@ const AppContent = () => {
   //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJleGFtcGxlQGNvbXBhbnkuY29tIiwiaWF0IjoxNzM1Mjc3MzU4LCJleHAiOjE3MzUzMTMzNTh9.us_kSHbxuo3Ew7To7Pz5LB4_3Mifze_vuSMm6A-m3gI";
 
   // localStorage.setItem("token", token);
+
+  useEffect(() => {
+    if (location.pathname === "/") {
+      navigate("/admin/login");
+    }
+  }, [location.pathname, navigate]);
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
