@@ -28,6 +28,7 @@ import ApproveRequest from "./pages/ApproveRequest";
 import UserAnnouncementTable from "./pages/AnnouncementPages/UserAnnouncement";
 import SubAdminAnnouncementTable from "./pages/AnnouncementPages/SubAdminAnnouncement";
 import AnnouncementForm from "./pages/AnnouncementPages/CreateAnnouncement";
+import Assets from "./pages/Assets";
 
 // PrivateRoute component
 const PrivateRoute = ({ element }) => {
@@ -141,6 +142,10 @@ const AppContent = () => {
           <Route
             path="/admin/feedback"
             element={<PrivateRoute element={<Feedback />} />}
+          />
+          <Route
+            path="/admin/assets"
+            element={<PrivateRoute element={<Assets />} />}
           />
           <Route
             path="/admin/approve-request"

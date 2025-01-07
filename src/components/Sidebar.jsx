@@ -245,6 +245,18 @@ const Sidebar = () => {
             <ListItemText primary="Feedback" sx={{ color: "#E0F2F1" }} />
           </ListItem>
         </NavLink>
+        <NavLink
+          to="/admin/assets"
+          className="nav-link"
+          onClick={handleNavLinkClick}
+        >
+          <ListItem button>
+            <ListItemIcon>
+              <JobHistory sx={{ color: "#1E3A8A" }} />
+            </ListItemIcon>
+            <ListItemText primary="Assets" sx={{ color: "#E0F2F1" }} />
+          </ListItem>
+        </NavLink>
       </List>
       <div style={{ padding: "16px" }}>
         <Button
