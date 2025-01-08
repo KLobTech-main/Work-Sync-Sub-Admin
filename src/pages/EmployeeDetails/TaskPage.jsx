@@ -168,7 +168,7 @@ const TaskPage = () => {
               <TableRow>
                 <TableCell>Task ID</TableCell>
                 <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
+                {/* <TableCell>Email</TableCell> */}
                 <TableCell>Task Description</TableCell>
                 <TableCell>Status</TableCell>
               </TableRow>
@@ -179,7 +179,7 @@ const TaskPage = () => {
                   <TableRow key={task.id}>
                     <TableCell>{task.id}</TableCell>
                     <TableCell>{task.name}</TableCell>
-                    <TableCell>{task.email}</TableCell>
+                    {/* <TableCell>{task.email}</TableCell> */}
                     <TableCell>{task.task}</TableCell>
                     <TableCell>{task.status}</TableCell>
                   </TableRow>

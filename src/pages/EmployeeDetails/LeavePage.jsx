@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Paper,
   Table,
@@ -14,6 +15,9 @@ import {
 import axios from "axios";
 
 const EmployeeDetails = () => {
+  const { state } = useLocation(); // Fetching the employee data passed from the previous page
+  const { employee } = state || {};
+
   const [leaves, setLeaves] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -23,7 +27,7 @@ const EmployeeDetails = () => {
     const fetchLeaves = async () => {
       const adminEmail = localStorage.getItem("email");
       const authToken = localStorage.getItem("token");
-      const employeeEmail = "luffy@gmail.com"; // Replace this with the dynamic employee email.
+      const employeeEmail = employee.email; // Replace this with the dynamic employee email.
 
       if (!adminEmail || !authToken || !employeeEmail) {
         setError(

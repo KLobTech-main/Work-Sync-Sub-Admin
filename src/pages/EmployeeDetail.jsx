@@ -18,6 +18,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Grid,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useNavigate } from "react-router-dom";
@@ -35,11 +36,21 @@ const EmployeeDetails = () => {
   const [showAllInfoDialogOpen, setShowAllInfoDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [isSalaryDialogOpen, setSalaryDialogOpen] = useState(false);
+  const [newSalary, setNewSalary] = useState("");
+
+  const [payRunPeriod, setPayRunPeriod] = useState("");
+  const [houseRentAllowance, setHouseRentAllowance] = useState("");
+  const [conveyanceAllowance, setConveyanceAllowance] = useState("");
+  const [specialAllowance, setSpecialAllowance] = useState("");
+  const [medicalAllowance, setMedicalAllowance] = useState("");
+  const [salaryOverviewDialogOpen, setSalaryOverviewDialogOpen] =
+    useState(false);
 
   useEffect(() => {
     const fetchEmployees = async () => {
       const token = localStorage.getItem("token");
-      const email = "example@company.com";
+      const email = localStorage.getItem("email");
       // const token =
       //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJleGFtcGxlQGNvbXBhbnkuY29tIiwiaWF0IjoxNzM1MTkzNDQyLCJleHAiOjE3MzUyMjk0NDJ9.TFMeMTNRUfeqIxxwTgAt-J2PCXXO4nLz22AeS4SsuNg";
 
@@ -91,6 +102,11 @@ const EmployeeDetails = () => {
         setEditDialogOpen(true);
       } else if (action === "showAllInfoedit") {
         setShowAllInfoDialogOpen(true);
+      } else if (action === "salary") {
+        setSalaryDialogOpen(true); // Open the salary popup
+      } else if (action === "salaryDetails") {
+        console.log("Opening salary overview dialog"); // Debugging log
+        setSalaryOverviewDialogOpen(true); // Open the salary overview popup
       } else {
         navigate(`/admin/employee/${selectedEmployee.email}/${action}`, {
           state: { employee: selectedEmployee },
@@ -98,6 +114,57 @@ const EmployeeDetails = () => {
       }
     }
     setAnchorEl(null);
+  };
+
+  const handleSalarySubmit = () => {
+    const adminEmail = localStorage.getItem("email");
+    const token = localStorage.getItem("token");
+
+    // Debugging: Check values from localStorage
+    console.log("Admin Email:", adminEmail);
+    console.log("Token:", token);
+
+    // Check if selectedEmployee is available
+    console.log("Selected Employee:", selectedEmployee);
+
+    if (!selectedEmployee || !selectedEmployee.email) {
+      alert("No employee selected.");
+      return;
+    }
+
+    axios
+      .post(
+        "https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin/api/salary",
+        {
+          adminEmail,
+          email: selectedEmployee.email,
+          salary: newSalary,
+        },
+        {
+          headers: {
+            Authorization: token, // Add the token here
+          },
+        }
+      )
+      .then((response) => {
+        console.log("Response:", response); // Log the response for debugging
+        if (response) {
+          alert("Salary updated successfully!");
+        } else {
+          alert("Failed to update salary: " + response.data.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Error updating salary:", error);
+        alert("An error occurred while updating salary: " + error.message);
+        console.log(selectedEmployee.email);
+        console.log(typeof newSalary);
+        console.log(adminEmail);
+      })
+      .finally(() => {
+        setSalaryDialogOpen(false); // Close the popup after submission
+        setNewSalary(""); // Clear the input field
+      });
   };
 
   const handleEditChange = (field, value) => {
@@ -123,9 +190,9 @@ const EmployeeDetails = () => {
         adminEmail: adminEmail, // From localStorage
         currentEmail: editEmployee.email, // From employee data
         name: editEmployee.name, // From form input
-        role: editEmployee.role, // From form input
-        mobileNo: editEmployee.mobileNo, // From form input
-        salary: editEmployee.salary ? [editEmployee.salary] : [], // From form input
+        // role: editEmployee.role, // From form input
+        mobileNo: editEmployee.mobile, // From form input
+        // salary: editEmployee.salary ? [editEmployee.salary] : [], // From form input
         newEmail: editEmployee.newEmail, // From form input
       };
 
@@ -151,6 +218,7 @@ const EmployeeDetails = () => {
         );
         setEditDialogOpen(false); // Close the dialog
         alert("Employee updated successfully!");
+        console.log(editEmployee.mobileNo);
       } else {
         alert("Failed to update employee. Please try again.");
       }
@@ -192,54 +260,56 @@ const EmployeeDetails = () => {
     }
   };
 
-  // useEffect(() => {
-  //   const fetchJoiningDates = async () => {
-  //     const token = localStorage.getItem("token");
-  //     const adminEmail = localStorage.getItem("email"); // Retrieve adminEmail from localStorage
+  const handleSalaryOverviewSubmit = () => {
+    const adminEmail = localStorage.getItem("email");
+    const token = localStorage.getItem("token");
 
-  //     try {
-  //       setLoading(true);
+    const salaryDetails = {
+      payRunPeriod,
+      houseRentAllowance,
+      conveyanceAllowance,
+      specialAllowance,
+      medicalAllowance,
+    };
 
-  //       // Create axios instance with common headers
-  //       const axiosInstance = axios.create({
-  //         headers: {
-  //           Authorization: token,
-  //           "Content-Type": "application/json",
-  //         },
-  //       });
-
-  //       // Fetch job history with adminEmail as a query parameter
-  //       const jobHistoryResponse = await axiosInstance.get(
-  //         "https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin/api/jobHistory/all",
-  //         {
-  //           params: { adminEmail }, // Add adminEmail to query params
-  //         }
-  //       );
-
-  //       const jobHistoryData = jobHistoryResponse.data;
-  //       // console.log(jobHistoryData.joiningDate);
-  //       // Update employees with joiningDate from job history
-  //       const updatedEmployees = employees.map((employee) => {
-  //         const jobHistory = jobHistoryData.find(
-  //           (job) => job.email === employee.email
-  //         );
-  //         return {
-  //           ...employee,
-  //           joiningDate: jobHistory?.joiningDate || "Not Available",
-  //         };
-  //       });
-
-  //       setEmployees(updatedEmployees);
-  //     } catch (error) {
-  //       console.error("Error fetching job history:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchJoiningDates();
-  // }, []); // Dependency on 'employees'
-
+    axios
+      .post(
+        "https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/api/admin/user/salary",
+        {
+          adminEmail,
+          userEmail: selectedEmployee.email, // Use the selected employee's email
+          salaryDetails,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token, // Add token here
+          },
+        }
+      )
+      .then((response) => {
+        console.log("Response:", response);
+        if (response) {
+          alert("Salary overview submitted successfully!");
+        } else {
+          alert("Failed to submit salary overview: " + response.data.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Error submitting salary overview:", error);
+        alert(
+          "An error occurred while submitting salary overview: " + error.message
+        );
+      })
+      .finally(() => {
+        setSalaryOverviewDialogOpen(false); // Close the popup after submission
+        setPayRunPeriod("");
+        setHouseRentAllowance("");
+        setConveyanceAllowance("");
+        setSpecialAllowance("");
+        setMedicalAllowance(""); // Clear input fields
+      });
+  };
   return (
     <div>
       {/* Add your component rendering logic here */}
@@ -292,9 +362,9 @@ const EmployeeDetails = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {currentEmployees.map((employee) => (
+                      {currentEmployees.map((employee, index) => (
                         <TableRow key={employee.id}>
-                          <TableCell>{employee.id}</TableCell>
+                          <TableCell>{index + 1}</TableCell>
                           <TableCell>{employee.name}</TableCell>
                           <TableCell>{employee.email}</TableCell>
                           <TableCell>{employee.role}</TableCell>
@@ -336,6 +406,18 @@ const EmployeeDetails = () => {
                                 onClick={() => handleActionSelect("attendance")}
                               >
                                 Attendance
+                              </MenuItem>
+                              <MenuItem
+                                onClick={() => handleActionSelect("salary")}
+                              >
+                                Salary Overview
+                              </MenuItem>
+                              <MenuItem
+                                onClick={() =>
+                                  handleActionSelect("salaryDetails")
+                                }
+                              >
+                                Salary Details
                               </MenuItem>
                             </Menu>
                           </TableCell>
@@ -604,6 +686,92 @@ const EmployeeDetails = () => {
                 <Button onClick={handleCloseShowAllInfoDialog}>Close</Button>
               </DialogActions>
             </Dialog>
+            <Dialog
+              open={isSalaryDialogOpen}
+              onClose={() => setSalaryDialogOpen(false)}
+              maxWidth="sm"
+              fullWidth
+            >
+              <DialogTitle>Update Employee Salary</DialogTitle>
+              <DialogContent>
+                <TextField
+                  label="New Salary"
+                  variant="outlined"
+                  fullWidth
+                  value={newSalary}
+                  onChange={(e) => setNewSalary(e.target.value)}
+                  margin="normal"
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleSalarySubmit} color="primary">
+                  Submit
+                </Button>
+                <Button
+                  onClick={() => setSalaryDialogOpen(false)}
+                  color="secondary"
+                >
+                  Cancel
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+            {salaryOverviewDialogOpen && (
+              <Dialog
+                open={salaryOverviewDialogOpen}
+                onClose={() => setSalaryOverviewDialogOpen(false)}
+              >
+                <DialogTitle>Salary Overview</DialogTitle>
+                <DialogContent>
+                  <TextField
+                    label="Pay Run Period"
+                    fullWidth
+                    value={payRunPeriod}
+                    onChange={(e) => setPayRunPeriod(e.target.value)}
+                    margin="normal"
+                  />
+                  <TextField
+                    label="House Rent Allowance"
+                    fullWidth
+                    value={houseRentAllowance}
+                    onChange={(e) => setHouseRentAllowance(e.target.value)}
+                    margin="normal"
+                  />
+                  <TextField
+                    label="Conveyance Allowance"
+                    fullWidth
+                    value={conveyanceAllowance}
+                    onChange={(e) => setConveyanceAllowance(e.target.value)}
+                    margin="normal"
+                  />
+                  <TextField
+                    label="Special Allowance"
+                    fullWidth
+                    value={specialAllowance}
+                    onChange={(e) => setSpecialAllowance(e.target.value)}
+                    margin="normal"
+                  />
+                  <TextField
+                    label="Medical Allowance"
+                    fullWidth
+                    value={medicalAllowance}
+                    onChange={(e) => setMedicalAllowance(e.target.value)}
+                    margin="normal"
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleSalaryOverviewSubmit} color="primary">
+                    Submit
+                  </Button>
+                  <Button
+                    onClick={() => setSalaryOverviewDialogOpen(false)}
+                    color="primary"
+                  >
+                    Cancel
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            )}
           </div>
         </>
       )}
