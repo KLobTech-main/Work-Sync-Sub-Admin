@@ -27,13 +27,12 @@ const AnnouncementForm = () => {
   const handleRecipientChange = (e) => setRecipient(e.target.value);
 
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchEmployeeEmails = async () => {
       const token = localStorage.getItem("token");
       const email = localStorage.getItem("email");
 
       try {
-        setLoading(true);
-        setSnackbarOpen(true);
+        setLoading(true); // Show loading state
 
         const response = await axios.get(
           `https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin/api/get-all-users`,
@@ -43,31 +42,41 @@ const AnnouncementForm = () => {
               "Content-Type": "application/json",
             },
             params: {
-              adminEmail: encodeURIComponent(email), // Ensure proper encoding
+              adminEmail: email, // Add email as query parameter
             },
           }
         );
 
         if (response.status === 200) {
-          setEmployees(response.data); // Assuming response.data contains the employees
+          const emails = response.data.map((employee) => employee.email); // Extract only emails
+          setEmployeeEmails(emails); // Save only emails to state
         } else {
           console.error("Failed to fetch employees:", response.statusText);
         }
       } catch (error) {
         console.error("Error fetching employees:", error);
       } finally {
-        setLoading(false);
-        // setSnackbarOpen(false);
+        setLoading(false); // Hide loading state
       }
     };
 
-    fetchEmployees();
+    fetchEmployeeEmails();
   }, []);
 
   const handleSubmit = async () => {
-    if (!title || !message || !recipient) {
+    if (!title || !message) {
       alert("Please fill in all fields.");
       return;
+    }
+
+    if (!recipient) {
+      // Ask for confirmation if no recipient is selected
+      const isConfirmed = window.confirm(
+        "Are you sure you want to send this announcement to all users?"
+      );
+      if (!isConfirmed) {
+        return; // Do nothing if the user cancels
+      }
     }
 
     const senderEmail = localStorage.getItem("email");
@@ -104,10 +113,9 @@ const AnnouncementForm = () => {
 
       if (response.status === 200) {
         alert("Announcement created successfully.");
-        // Optionally update announcements list or perform other UI updates
         setTitle("");
         setMessage("");
-        setRecipient("");
+        setRecipient(""); // Clear recipient after submission
       } else {
         alert("Failed to create announcement.");
       }

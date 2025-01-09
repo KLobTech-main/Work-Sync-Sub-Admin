@@ -13,7 +13,6 @@ import {
   Snackbar,
   Alert,
   TablePagination,
-  CircularProgress,
   Typography,
   Button,
 } from "@mui/material";
@@ -25,6 +24,8 @@ const Task = () => {
   const [page, setPage] = useState(0); // Current page
   const [rowsPerPage, setRowsPerPage] = useState(10); // Rows per page
   const [expandedTask, setExpandedTask] = useState(null); // To track which task's description is expanded
+  const [loading, setLoading] = useState(false); // State for loading
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // State for snackbar visibility
 
   // Fetch tasks from API
   useEffect(() => {
@@ -74,27 +75,12 @@ const Task = () => {
     setPage(0); // Reset to first page when rows per page is changed
   };
 
-  const [loading, setLoading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
 
   if (loading) {
-    return (
-      <>
-        <Snackbar
-          open={snackbarOpen}
-          onClose={handleSnackbarClose}
-          anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        >
-          <Alert onClose={handleSnackbarClose} severity="info">
-            Loading...
-          </Alert>
-        </Snackbar>
-        <CircularProgress />
-      </>
-    );
+    return null; // Return nothing or a loading spinner if you prefer, to hide the UI during loading
   }
 
   if (error) {
@@ -107,6 +93,17 @@ const Task = () => {
 
   return (
     <div>
+      {/* Snackbar for loading state */}
+      <Snackbar
+        open={snackbarOpen}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity="info">
+          Loading...
+        </Alert>
+      </Snackbar>
+
       {/* Header and Search Box */}
       <Box
         display="flex"

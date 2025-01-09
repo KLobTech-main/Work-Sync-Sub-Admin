@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
   Box,
@@ -18,6 +18,7 @@ const AnnouncementForm = () => {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [recipient, setRecipient] = useState("");
+  const [employeeEmails, setEmployeeEmails] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -25,8 +26,45 @@ const AnnouncementForm = () => {
   const handleMessageChange = (e) => setMessage(e.target.value);
   const handleRecipientChange = (e) => setRecipient(e.target.value);
 
+  useEffect(() => {
+    const fetchEmployeeEmails = async () => {
+      const token = localStorage.getItem("token");
+      const email = localStorage.getItem("email");
+
+      try {
+        setLoading(true); // Show loading state
+
+        const response = await axios.get(
+          `https://work-sync-gbf0h9d5amcxhwcr.canadacentral-01.azurewebsites.net/admin/api/get-all-users`,
+          {
+            headers: {
+              Authorization: token,
+              "Content-Type": "application/json",
+            },
+            params: {
+              adminEmail: email, // Add email as query parameter
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          const emails = response.data.map((employee) => employee.email); // Extract only emails
+          setEmployeeEmails(emails); // Save only emails to state
+        } else {
+          console.error("Failed to fetch employees:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching employees:", error);
+      } finally {
+        setLoading(false); // Hide loading state
+      }
+    };
+
+    fetchEmployeeEmails();
+  }, []);
+
   const handleSubmit = async () => {
-    if (!title || !message) {
+    if (!title || !message || !recipient) {
       alert("Please fill in all fields.");
       return;
     }
@@ -68,6 +106,7 @@ const AnnouncementForm = () => {
         // Optionally update announcements list or perform other UI updates
         setTitle("");
         setMessage("");
+        setRecipient("");
       } else {
         alert("Failed to create announcement.");
       }
@@ -87,13 +126,6 @@ const AnnouncementForm = () => {
         sx={{ fontWeight: "bold", color: "#333" }}
       >
         Create Announcement
-      </Typography>
-      <Typography
-        variant="h6"
-        gutterBottom
-        sx={{ fontWeight: "bold", color: "#333" }}
-      >
-        Announcement for all users
       </Typography>
 
       {/* Title Input */}
@@ -144,8 +176,12 @@ const AnnouncementForm = () => {
             },
           }}
         >
-          <MenuItem value="employee">Employee</MenuItem>
-          <MenuItem value="subAdmin">Sub-Admin</MenuItem>
+          <MenuItem value="">None</MenuItem>
+          {employeeEmails.map((email, index) => (
+            <MenuItem key={index} value={email}>
+              {email}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
 
@@ -170,47 +206,6 @@ const AnnouncementForm = () => {
         >
           {loading ? "Submitting..." : "Submit Announcement"}
         </Button>
-      </Box>
-
-      {/* Display All Announcements */}
-      <Box sx={{ marginTop: 4 }}>
-        <Typography
-          variant="h5"
-          gutterBottom
-          sx={{ fontWeight: "bold", color: "#333" }}
-        >
-          All Announcements
-        </Typography>
-        {announcements.length > 0 ? (
-          announcements.map((item, index) => (
-            <Card
-              key={index}
-              sx={{ marginBottom: 3, borderRadius: "10px", boxShadow: 3 }}
-            >
-              <CardContent>
-                <Typography variant="h6" sx={{ marginBottom: 1 }}>
-                  Announcement {index + 1}
-                </Typography>
-                <Typography variant="body1" sx={{ marginBottom: 1 }}>
-                  <strong>Title:</strong> {item.title}
-                </Typography>
-                <Typography variant="body2" sx={{ marginBottom: 1 }}>
-                  <strong>Message:</strong> {item.message}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Recipient:</strong> {item.recipientType}
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button size="small" color="secondary">
-                  View Details
-                </Button>
-              </CardActions>
-            </Card>
-          ))
-        ) : (
-          <Typography>No announcements available.</Typography>
-        )}
       </Box>
     </Box>
   );
